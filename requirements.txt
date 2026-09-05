@@ -1,0 +1,4 @@
+# 本地完整依赖：在 CI 轻量依赖基础上，启用 DeepEval / Ragas 增强指标（需 LLM-as-judge）
+-r requirements-ci.txt
+deepeval>=1.0
+ragas>=0.2

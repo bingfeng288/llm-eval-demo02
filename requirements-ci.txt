@@ -1,0 +1,4 @@
+# CI 轻量依赖：跑冒烟 + 真实 Ollama 评测（保底指标，速度快）
+pyyaml>=6.0
+openai>=1.30
+pytest>=8.0

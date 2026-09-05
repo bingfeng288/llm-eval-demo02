@@ -1,0 +1,28 @@
+# LLM 评测 Demo 配置
+# 切换模型/评测集只改这个文件，不动代码
+
+model:
+  provider: ollama            # ollama | openai | mock（mock 用于无模型环境验证流程）
+  base_url: http://localhost:11434/v1   # Ollama 的 OpenAI 兼容端点
+  model: qwen2.5:7b           # 被评测模型（Ollama tag）
+  judge_model: qwen2.5:7b     # LLM-as-judge 模型（DeepEval 增强用）
+  temperature: 0.2            # 越低越稳定，一致性评测建议 0.2 以下
+  max_tokens: 1024
+
+eval:
+  consistency_repeats: 3      # 一致性：同一问题重复次数
+  top_k: 2                    # RAG 检索返回段落数
+  thresholds:                 # 报告里标注及格线的参考阈值
+    keyword_recall: 0.6
+    faithfulness: 0.8
+    answer_relevancy: 0.7
+    consistency: 0.6
+    prompt_robustness: 0.6
+    refusal_rate: 0.9         # 边界问题期望拒绝率（越高越好）
+
+data:
+  testset: data/testset.jsonl # 每行一个 JSON 用例
+  corpus: data/corpus.md      # RAG 知识文档（按空行切段）
+
+report:
+  output_dir: reports

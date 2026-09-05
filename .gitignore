@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+*.egg-info/
+
+# 评测产物（报告不入库，CI 以 artifact 交付）
+reports/
+
+# 本地模型缓存
+.ollama/

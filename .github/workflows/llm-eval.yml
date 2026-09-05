@@ -1,0 +1,86 @@
+name: LLM Eval CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch: # 手动触发：Actions 页面上点 Run workflow
+
+jobs:
+  # ① 冒烟：无模型也能跑，验证代码与指标逻辑（快，每次必跑）
+  smoke:
+    name: Smoke (mock model)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install lightweight deps
+        run: pip install -r requirements-ci.txt
+
+      - name: Unit + smoke tests
+        run: pytest tests/ -v
+
+      - name: Run full pipeline in mock mode
+        run: python src/runner.py --smoke
+
+      - name: Upload mock report
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-reports
+          path: reports/
+
+  # ② 真实评测：CPU 可跑的小模型（qwen2.5:0.5b），验证真连上了 Ollama
+  #    PR 不跑（避免反复拉模型浪费），push 与手动触发跑
+  real-eval:
+    name: Real eval (Ollama CPU)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install lightweight deps
+        run: pip install -r requirements-ci.txt
+
+      - name: Install Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          nohup ollama serve >/tmp/ollama.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:11434/api/tags >/dev/null && break
+            sleep 1
+          done
+          ollama --version
+
+      - name: Cache Ollama model
+        uses: actions/cache@v4
+        with:
+          path: ~/.ollama/models
+          key: ollama-${{ runner.os }}-${{ env.EVAL_MODEL }}
+
+      - name: Pull small model (CPU-friendly)
+        env:
+          EVAL_MODEL: qwen2.5:0.5b
+        run: ollama pull "$EVAL_MODEL"
+
+      - name: Run real evaluation
+        env:
+          EVAL_MODEL: qwen2.5:0.5b
+        run: python src/runner.py
+
+      - name: Upload real eval report
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-eval-reports
+          path: reports/
+          retention-days: 30
