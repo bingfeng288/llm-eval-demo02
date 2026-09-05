@@ -200,9 +200,9 @@ def write_html_report(report: dict, out_dir: Path) -> Path:
 # ---------------------------------------------------------------- 入口
 
 def _env_override(cfg: dict) -> dict:
-    """环境变量覆盖配置（CI 友好）：MODEL_PROVIDER / MODEL_NAME 优先级高于 config.yaml。"""
+    """环境变量覆盖配置（CI 友好）：MODEL_PROVIDER / MODEL_NAME(或 EVAL_MODEL) 优先级高于 config.yaml。"""
     provider = os.environ.get("MODEL_PROVIDER")
-    model = os.environ.get("MODEL_NAME")
+    model = os.environ.get("MODEL_NAME") or os.environ.get("EVAL_MODEL")
     if provider:
         cfg["model"]["provider"] = provider
         logger.info("环境变量覆盖 provider=%s", provider)

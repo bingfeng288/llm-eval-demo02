@@ -6,6 +6,9 @@ on:
   pull_request:
   workflow_dispatch: # 手动触发：Actions 页面上点 Run workflow
 
+env:
+  EVAL_MODEL: qwen2.5:0.5b # CI 评测用的小模型（CPU 可跑）；runner 读 EVAL_MODEL 覆盖 config.yaml
+
 jobs:
   # ① 冒烟：无模型也能跑，验证代码与指标逻辑（快，每次必跑）
   smoke:
@@ -69,13 +72,9 @@ jobs:
           key: ollama-${{ runner.os }}-${{ env.EVAL_MODEL }}
 
       - name: Pull small model (CPU-friendly)
-        env:
-          EVAL_MODEL: qwen2.5:0.5b
         run: ollama pull "$EVAL_MODEL"
 
       - name: Run real evaluation
-        env:
-          EVAL_MODEL: qwen2.5:0.5b
         run: python src/runner.py
 
       - name: Upload real eval report
