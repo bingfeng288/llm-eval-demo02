@@ -2,7 +2,7 @@
 
 两周可交付的 LLM 评测流水线：评测一个开源模型在中文场景的**事实准确性、一致性、边界拒绝率**，输出 JSON/HTML 报告，可直接挂 GitHub 当作品集。**内置 GitHub Actions CI，推送即自动评测。**
 
-[![LLM Eval CI](https://github.com/<your-org>/<your-repo>/actions/workflows/llm-eval.yml/badge.svg)](https://github.com/<your-org>/<your-repo>/actions/workflows/llm-eval.yml)
+[![LLM Eval CI](https://github.com/bingfeng288/llm-eval-demo02/actions/workflows/llm-eval.yml/badge.svg)](https://github.com/bingfeng288/llm-eval-demo02/actions/workflows/llm-eval.yml)
 
 ## 快速开始
 
