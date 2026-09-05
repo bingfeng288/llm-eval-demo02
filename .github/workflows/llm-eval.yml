@@ -9,6 +9,15 @@ on:
 env:
   EVAL_MODEL: qwen2.5:0.5b # CI 评测用的小模型（CPU 可跑）；runner 读 EVAL_MODEL 覆盖 config.yaml
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
 jobs:
   # ① 冒烟：无模型也能跑，验证代码与指标逻辑（快，每次必跑）
   smoke:
@@ -83,3 +92,30 @@ jobs:
           name: real-eval-reports
           path: reports/
           retention-days: 30
+
+  # ③ 发布报告到 GitHub Pages（私有仓库自动跳过；仓库公开后 push 即自动上线在线报告）
+  deploy-report:
+    name: Deploy report to Pages
+    needs: real-eval
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' && github.repository_visibility == 'public'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Download real eval report
+        uses: actions/download-artifact@v4
+        with:
+          name: real-eval-reports
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: real-eval-reports
+
+      - id: deployment
+        name: Deploy to Pages
+        uses: actions/deploy-pages@v4
